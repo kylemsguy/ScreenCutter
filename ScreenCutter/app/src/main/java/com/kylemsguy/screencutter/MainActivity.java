@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
             params.leftMargin = boundingBox[0];
             params.topMargin = boundingBox[1];
             v.setLayoutParams(params);
-            v.setBackgroundColor(0x8000FFFF);
+            v.setBackgroundColor(0x80FF0000);//0x8000FFFF
             mainIfLayout.addView(v);
         }
     }
@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         double scaleFactor = (double) ((View) mainIfLayout.getParent()).getHeight() / imgBitmap.getHeight();
         String[] bbox = boundingBox.split(",");
         int[] intbox = new int[4];
-        intbox[0] = (int)((Integer.parseInt(bbox[0]) - ((View) mainIfLayout.getParent()).getWidth()/2) * scaleFactor) + imgBitmap.getHeight() / 2;
+        intbox[0] = (int)((Integer.parseInt(bbox[0]) - imgBitmap.getHeight() / 2) * scaleFactor) + ((View) mainIfLayout.getParent()).getWidth() / 2;
         intbox[1] = (int)(Integer.parseInt(bbox[1]) * scaleFactor);
         intbox[2] = (int)(Integer.parseInt(bbox[2]) * scaleFactor);
         intbox[3] = (int)(Integer.parseInt(bbox[3]) * scaleFactor);
