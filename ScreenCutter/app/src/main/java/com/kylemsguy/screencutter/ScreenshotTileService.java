@@ -16,5 +16,15 @@ public class ScreenshotTileService extends TileService {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         startActivityAndCollapse(intent);
-	}
+    }
+
+    @Override
+    public void onTileAdded() {
+        NotificationMaker.setNotificationEnabled(this, false);
+    }
+
+    @Override
+    public void onTileRemoved() {
+        NotificationMaker.setNotificationEnabled(this, true);
+    }
 }
