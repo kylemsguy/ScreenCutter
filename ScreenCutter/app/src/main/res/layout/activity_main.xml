@@ -18,6 +18,8 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="178dp"
+
+        android:visibility="gone"
         android:id="@+id/contentLoadingLayout">
 
         <android.support.v4.widget.ContentLoadingProgressBar
@@ -36,6 +38,18 @@
             android:layout_below="@+id/contentLoadingProgressBar2"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="47dp" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/mainIfLayout">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/debugFullScreenDecoded"/>
+
     </RelativeLayout>
 
 

@@ -66,10 +66,8 @@ public class AzureOcr implements OcrDecoder {
             try {
                 return process();
             } catch (Exception e) {
-                this.e = e;
+                return e.toString();
             }
-
-            return null;
         }
 
         @Override
