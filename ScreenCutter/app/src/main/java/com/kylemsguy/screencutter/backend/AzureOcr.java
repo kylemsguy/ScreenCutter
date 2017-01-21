@@ -47,7 +47,7 @@ public class AzureOcr implements OcrDecoder {
 
         // Put the image into an input stream for detection.
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, output);
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, output);
         ByteArrayInputStream inputStream = new ByteArrayInputStream(output.toByteArray());
 
         OCR ocr = this.client.recognizeText(inputStream, LanguageCodes.AutoDetect, true);
@@ -66,6 +66,7 @@ public class AzureOcr implements OcrDecoder {
             try {
                 return process();
             } catch (Exception e) {
+                e.printStackTrace();
                 return e.toString();
             }
         }
