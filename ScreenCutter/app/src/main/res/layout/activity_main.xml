@@ -24,7 +24,7 @@
 
             <android.support.v4.widget.ContentLoadingProgressBar
                 android:id="@+id/contentLoadingProgressBar2"
-                style="@android:style/Widget.ProgressBar.Large"
+                style="@android:style/Widget.DeviceDefault.ProgressBar.Large"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
@@ -61,13 +61,27 @@
 
     </RelativeLayout>
     <LinearLayout
-        android:layout_width="200dp"
+        android:layout_width="260dp"
         android:layout_height="match_parent"
         android:layout_gravity="left|start"
-        android:background="@android:color/white">
+        android:background="@android:color/white"
+        android:orientation="vertical">
         <TextView android:id="@+id/output_text"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:lines="0"/>
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingBottom="8dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="8dp"/>
+        <Button android:id="@+id/output_copy_button"
+            android:text="Copy to Clipboard"
+            android:drawableStart="@drawable/abc_ic_menu_copy_mtrl_am_alpha"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:onClick="onCopyOutputClicked"
+            style="@style/Widget.AppCompat.Button.Borderless"/>
     </LinearLayout>
 </android.support.v4.widget.DrawerLayout>

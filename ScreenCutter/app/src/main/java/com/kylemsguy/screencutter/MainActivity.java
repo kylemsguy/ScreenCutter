@@ -12,6 +12,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.kylemsguy.screencutter.backend.AzureOcr;
 import com.kylemsguy.screencutter.backend.OcrDecoder;
@@ -24,9 +25,10 @@ import org.w3c.dom.Text;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Uri uriFile;
     private Bitmap imgBitmap;
@@ -37,8 +39,10 @@ public class MainActivity extends AppCompatActivity {
     private RelativeLayout mainIfLayout;
     private TextView debugTextView;
     private ImageView screenImageView;
+	private TextView previewTextView;
 
     private List<View> textItems;
+	private List<View> selectedItems = new ArrayList<View>();
 
     // TODO abstract this to use tesseract
     private OcrDecoder azureDecoder;
@@ -52,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         mainIfLayout = (RelativeLayout) findViewById(R.id.mainIfLayout);
         debugTextView = (TextView) findViewById(R.id.debugFullScreenDecoded);
         screenImageView = (ImageView) findViewById(R.id.screenImage);
+		previewTextView = (TextView) findViewById(R.id.output_text);
 
         // should be already toggled by default
         toggleLoading();
@@ -99,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
             for(Line l : r.lines) {
                 View v = new View(this);
                 int[] boundingBox = getScaledBoundingBox(l.boundingBox);
+				System.out.println("Bounding box: " + java.util.Arrays.toString(boundingBox));
                 RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(boundingBox[2], boundingBox[3]);
                 params.leftMargin = boundingBox[0];
                 params.topMargin = boundingBox[1];
@@ -112,19 +118,27 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 final String joinedLine = sb.toString();
+				v.setTag(joinedLine);
 
-                v.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        ((ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setText(joinedLine);
-                    }
-                });
+                v.setOnClickListener(this);
 
                 mainIfLayout.addView(v);
                 textItems.add(v);
             }
         }
     }
+
+	public void onClick(View v) {
+		boolean newSelected = !v.isSelected();
+		v.setSelected(newSelected);
+		v.setBackgroundColor(newSelected? 0x400080ff: 0x8000ffff);
+		if (newSelected) {
+			selectedItems.add(v);
+		} else {
+			selectedItems.remove(v);
+		}
+		updateTextbox();
+	}
 
     private int[] getScaledBoundingBox(String boundingBox){
         double scaleFactor = (double) ((View) mainIfLayout.getParent()).getHeight() / imgBitmap.getHeight();
@@ -150,6 +164,43 @@ public class MainActivity extends AppCompatActivity {
             mainIfLayout.setVisibility(View.GONE);
         }
     }
+
+	private void updateTextbox() {
+		previewTextView.setText(getSelectedString());
+	}
+
+	private String getSelectedString() {
+		selectedItems.sort(new Comparator<View>() {
+			public int compare(View v1, View v2) {
+				float y1 = v1.getY(); float y2 = v2.getY();
+				if (y1 < y2) {
+					return -1;
+				} else if (y1 > y2) {
+					return 1;
+				} else {
+					float x1 = v1.getX(); float x2 = v2.getX();
+					return x1 == x2? 0: (x1 < x2? -1 : 1);
+				}
+			}
+		});
+		StringBuilder b = new StringBuilder();
+		boolean already = false;
+		for (View v: selectedItems) {
+			if (!already) {
+				already = true;
+			} else {
+				b.append('\n');
+			}
+			b.append((String)v.getTag());
+		}
+		return b.toString();
+	}
+
+	public void onCopyOutputClicked(View v) {
+		 ((ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setClipData(ClipData.newPlainText(null, getSelectedString()));
+		Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT);
+		finish();
+	}
 
     @Override
     protected void onPause() {
