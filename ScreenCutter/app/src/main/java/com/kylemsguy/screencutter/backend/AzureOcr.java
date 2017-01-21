@@ -38,11 +38,11 @@ public class AzureOcr implements OcrDecoder {
 
     }
 
-    public String decodeImageToText(Bitmap bitmap) throws VisionServiceException, IOException {
+    public Object decodeImageToText(Bitmap bitmap) throws VisionServiceException, IOException {
         return process();
     }
 
-    private String process() throws VisionServiceException, IOException {
+    private Object process() throws VisionServiceException, IOException {
         Gson gson = new Gson();
 
         // Put the image into an input stream for detection.
@@ -51,18 +51,14 @@ public class AzureOcr implements OcrDecoder {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(output.toByteArray());
 
         OCR ocr = this.client.recognizeText(inputStream, LanguageCodes.AutoDetect, true);
-
-        String result = gson.toJson(ocr);
-        Log.d("result", result);
-
-        return result;
+        return ocr;
     }
 
-    private class DoSendToOCR extends AsyncTask<Void, Void, String> {
+    private class DoSendToOCR extends AsyncTask<Void, Void, Object> {
         private Exception e;
 
         @Override
-        protected String doInBackground(Void... nothing) {
+        protected Object doInBackground(Void... nothing) {
             try {
                 return process();
             } catch (Exception e) {
@@ -72,7 +68,7 @@ public class AzureOcr implements OcrDecoder {
         }
 
         @Override
-        protected void onPostExecute(String data) {
+        protected void onPostExecute(Object data) {
             super.onPostExecute(data);
             OcrCallback toCall = callback;
             callback = null;

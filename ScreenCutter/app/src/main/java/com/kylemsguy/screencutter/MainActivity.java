@@ -6,24 +6,35 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.kylemsguy.screencutter.backend.AzureOcr;
 import com.kylemsguy.screencutter.backend.OcrDecoder;
+import com.microsoft.projectoxford.vision.contract.OCR;
+import com.microsoft.projectoxford.vision.contract.Region;
 
 import org.w3c.dom.Text;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private Uri uriFile;
     private Bitmap imgBitmap;
 
+    private OCR ocrData;
+
     private RelativeLayout progressBarLayout;
     private RelativeLayout mainIfLayout;
     private TextView debugTextView;
+    private ImageView screenImageView;
+
+    private List<View> textItems;
 
     // TODO abstract this to use tesseract
     private OcrDecoder azureDecoder;
@@ -36,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         progressBarLayout = (RelativeLayout) findViewById(R.id.contentLoadingLayout);
         mainIfLayout = (RelativeLayout) findViewById(R.id.mainIfLayout);
         debugTextView = (TextView) findViewById(R.id.debugFullScreenDecoded);
+        screenImageView = (ImageView) findViewById(R.id.screenImage);
 
         // should be already toggled by default
         toggleLoading();
@@ -49,20 +61,57 @@ public class MainActivity extends AppCompatActivity {
         azureDecoder = new AzureOcr();
         azureDecoder.decodeImageToTextAsync(imgBitmap, new OcrDecoder.OcrCallback() {
             @Override
-            public void onResult(String data) {
+            public void onResult(Object data) {
                 onOcrReturn(data);
             }
-        });	
+        });
+
+        screenImageView.setImageBitmap(imgBitmap);
+
+        textItems = new ArrayList<>();
     }
 
-    private void onOcrReturn(String data){
+    private void onOcrReturn(Object data){
         // decode response
         // deactivate progress bar
         toggleLoading();
         // show image with text & boxes around text (or MVP, just show the text)
-        debugTextView.setText(data);
-        System.out.println(data);
+        if(data instanceof String){
+            debugTextView.setText((String) data);
+            System.out.println(data);
+            return;
+        } else {
+            ocrData = (OCR) data;
+        }
+
+        populateOcrData();
+
         // note: when box is tapped, open a messagebox that allows person to select text and copy
+    }
+
+
+    private void populateOcrData(){
+        for(Region r : ocrData.regions){
+            View v = new View(this);
+            int[] boundingBox = getScaledBoundingBox(r.boundingBox);
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(boundingBox[2], boundingBox[3]);
+            params.leftMargin = boundingBox[0];
+            params.topMargin = boundingBox[1];
+            v.setLayoutParams(params);
+            v.setBackgroundColor(0x8000FFFF);
+            mainIfLayout.addView(v);
+        }
+    }
+
+    private int[] getScaledBoundingBox(String boundingBox){
+        double scaleFactor = (double) ((View) mainIfLayout.getParent()).getHeight() / imgBitmap.getHeight();
+        String[] bbox = boundingBox.split(",");
+        int[] intbox = new int[4];
+        intbox[0] = (int)((Integer.parseInt(bbox[0]) - ((View) mainIfLayout.getParent()).getWidth()/2) * scaleFactor) + imgBitmap.getHeight() / 2;
+        intbox[1] = (int)(Integer.parseInt(bbox[1]) * scaleFactor);
+        intbox[2] = (int)(Integer.parseInt(bbox[2]) * scaleFactor);
+        intbox[3] = (int)(Integer.parseInt(bbox[3]) * scaleFactor);
+        return intbox;
     }
 
     private void toggleLoading(){

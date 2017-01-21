@@ -8,10 +8,10 @@ import android.graphics.Bitmap;
 
 public interface OcrDecoder {
     void decodeImageToTextAsync(Bitmap bitmap, OcrCallback callback);
-    String decodeImageToText(Bitmap bitmap) throws Exception;
+    Object decodeImageToText(Bitmap bitmap) throws Exception;
 
     interface OcrCallback{
         // data is a JSON string I think...
-        void onResult(String data);
+        void onResult(Object data);
     }
 }
