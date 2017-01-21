@@ -23,20 +23,23 @@ public class AzureOcr implements OcrDecoder {
 
     private VisionServiceClient client;
     private Bitmap bitmap;
+    private OcrCallback callback;
 
-    public void decodeImageToTextAsync(Bitmap bitmap, Runnable callback){
-        if(client == null) {
+    public void decodeImageToTextAsync(Bitmap bitmap, OcrCallback callback) {
+        if (client == null) {
             client = new VisionServiceRestClient(AzureOcrKeyStore.key1);
         }
 
         this.bitmap = bitmap;
+        this.callback = callback;
 
         // kick off OCR :D
+        new DoSendToOCR().execute();
 
     }
 
-    public Object decodeImageToText(Bitmap bitmap){
-        throw new UnsupportedOperationException();
+    public String decodeImageToText(Bitmap bitmap) throws VisionServiceException, IOException {
+        return process();
     }
 
     private String process() throws VisionServiceException, IOException {
@@ -55,10 +58,28 @@ public class AzureOcr implements OcrDecoder {
         return result;
     }
 
-    private class doRequest extends AsyncTask<String, String, String>{
+    private class DoSendToOCR extends AsyncTask<Void, Void, String> {
+        private Exception e;
+
         @Override
-        protected String doInBackground(String... strings) {
+        protected String doInBackground(Void... nothing) {
+            try {
+                return process();
+            } catch (Exception e) {
+                this.e = e;
+            }
+
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(String data) {
+            super.onPostExecute(data);
+            OcrCallback toCall = callback;
+            callback = null;
+            bitmap = null;
+
+            toCall.onResult(data);
         }
     }
 }

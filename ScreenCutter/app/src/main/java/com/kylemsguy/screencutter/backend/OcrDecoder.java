@@ -7,6 +7,11 @@ import android.graphics.Bitmap;
  */
 
 public interface OcrDecoder {
-    void decodeImageToTextAsync(Bitmap bitmap, Runnable callback);
-    Object decodeImageToText(Bitmap bitmap);
+    void decodeImageToTextAsync(Bitmap bitmap, OcrCallback callback);
+    String decodeImageToText(Bitmap bitmap) throws Exception;
+
+    interface OcrCallback{
+        // data is a JSON string I think...
+        void onResult(String data);
+    }
 }
