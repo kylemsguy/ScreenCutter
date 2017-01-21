@@ -1,5 +1,7 @@
 package com.kylemsguy.screencutter;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -13,8 +15,10 @@ import android.widget.TextView;
 
 import com.kylemsguy.screencutter.backend.AzureOcr;
 import com.kylemsguy.screencutter.backend.OcrDecoder;
+import com.microsoft.projectoxford.vision.contract.Line;
 import com.microsoft.projectoxford.vision.contract.OCR;
 import com.microsoft.projectoxford.vision.contract.Region;
+import com.microsoft.projectoxford.vision.contract.Word;
 
 import org.w3c.dom.Text;
 
@@ -92,14 +96,33 @@ public class MainActivity extends AppCompatActivity {
 
     private void populateOcrData(){
         for(Region r : ocrData.regions){
-            View v = new View(this);
-            int[] boundingBox = getScaledBoundingBox(r.boundingBox);
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(boundingBox[2], boundingBox[3]);
-            params.leftMargin = boundingBox[0];
-            params.topMargin = boundingBox[1];
-            v.setLayoutParams(params);
-            v.setBackgroundColor(0x80FF0000);//0x8000FFFF
-            mainIfLayout.addView(v);
+            for(Line l : r.lines) {
+                View v = new View(this);
+                int[] boundingBox = getScaledBoundingBox(l.boundingBox);
+                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(boundingBox[2], boundingBox[3]);
+                params.leftMargin = boundingBox[0];
+                params.topMargin = boundingBox[1];
+                v.setLayoutParams(params);
+                v.setBackgroundColor(0x8000FFFF);//0x8000FFFF
+
+                StringBuilder sb = new StringBuilder();
+                for(Word w : l.words){
+                    sb.append(w.text);
+                    sb.append(" ");
+                }
+
+                final String joinedLine = sb.toString();
+
+                v.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ((ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setText(joinedLine);
+                    }
+                });
+
+                mainIfLayout.addView(v);
+                textItems.add(v);
+            }
         }
     }
 
@@ -107,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
         double scaleFactor = (double) ((View) mainIfLayout.getParent()).getHeight() / imgBitmap.getHeight();
         String[] bbox = boundingBox.split(",");
         int[] intbox = new int[4];
-        intbox[0] = (int)((Integer.parseInt(bbox[0]) - imgBitmap.getHeight() / 2) * scaleFactor) + ((View) mainIfLayout.getParent()).getWidth() / 2;
+        intbox[0] = (int)((Integer.parseInt(bbox[0]) - imgBitmap.getWidth() / 2) * scaleFactor + ((View) mainIfLayout.getParent()).getWidth() / 2);
         intbox[1] = (int)(Integer.parseInt(bbox[1]) * scaleFactor);
         intbox[2] = (int)(Integer.parseInt(bbox[2]) * scaleFactor);
         intbox[3] = (int)(Integer.parseInt(bbox[3]) * scaleFactor);
