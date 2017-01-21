@@ -12,7 +12,7 @@ public class NotificationMaker {
 
         return new NotificationCompat.Builder(context).
                 setSmallIcon(R.mipmap.ic_launcher).
-                setContentTitle("Tap to recognize text from screen").
+                setContentTitle("Tap to select text").
                 setContentIntent(PendingIntent.getActivity(context, 2016, intent, 0)).
                 setCategory(NotificationCompat.CATEGORY_SERVICE).
                 setOngoing(true).
