@@ -1,5 +1,9 @@
 package com.kylemsguy.screencutter;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.graphics.Bitmap;
@@ -8,6 +12,7 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -40,10 +45,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private RelativeLayout mainIfLayout;
     private TextView debugTextView;
     private ImageView screenImageView;
-	private TextView previewTextView;
+    private TextView previewTextView;
 
     private List<View> textItems;
-	private List<View> selectedItems = new ArrayList<View>();
+    private List<View> selectedItems = new ArrayList<View>();
+    private int mShortAnimationDuration;
 
     // TODO abstract this to use tesseract
     private OcrDecoder azureDecoder;
@@ -57,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mainIfLayout = (RelativeLayout) findViewById(R.id.mainIfLayout);
         debugTextView = (TextView) findViewById(R.id.debugFullScreenDecoded);
         screenImageView = (ImageView) findViewById(R.id.screenImage);
-		previewTextView = (TextView) findViewById(R.id.output_text);
+        previewTextView = (TextView) findViewById(R.id.output_text);
 
         // should be already toggled by default
         toggleLoading();
@@ -79,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         screenImageView.setImageBitmap(imgBitmap);
 
         textItems = new ArrayList<>();
+        mShortAnimationDuration = getResources().getInteger(android.R.integer.config_shortAnimTime);
     }
 
     private void onOcrReturn(Object data){
@@ -105,7 +112,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             for(Line l : r.lines) {
                 View v = new View(this);
                 int[] boundingBox = getScaledBoundingBox(l.boundingBox);
-				System.out.println("Bounding box: " + java.util.Arrays.toString(boundingBox));
                 RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(boundingBox[2], boundingBox[3]);
                 params.leftMargin = boundingBox[0];
                 params.topMargin = boundingBox[1];
@@ -119,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
                 final String joinedLine = sb.toString();
-				v.setTag(joinedLine);
+                v.setTag(joinedLine);
 
                 v.setOnClickListener(this);
 
@@ -129,17 +135,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-	public void onClick(View v) {
-		boolean newSelected = !v.isSelected();
-		v.setSelected(newSelected);
-		v.setBackgroundColor(newSelected? 0x400080ff: 0x8000ffff);
-		if (newSelected) {
-			selectedItems.add(v);
-		} else {
-			selectedItems.remove(v);
-		}
-		updateTextbox();
-	}
+    public void onClick(View v) {
+        boolean newSelected = !v.isSelected();
+        v.setSelected(newSelected);
+        v.setBackgroundColor(newSelected? 0x400080ff: 0x8000ffff);
+        if (newSelected) {
+            selectedItems.add(v);
+            addFlyOutViewAnimation(v);
+        } else {
+            selectedItems.remove(v);
+        }
+        updateTextbox();
+    }
 
     private int[] getScaledBoundingBox(String boundingBox){
         double scaleFactor = (double) ((View) mainIfLayout.getParent()).getHeight() / imgBitmap.getHeight();
@@ -166,11 +173,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-	private void updateTextbox() {
-		previewTextView.setText(getSelectedString());
-	}
+    private void updateTextbox() {
+        previewTextView.setText(getSelectedString());
+    }
 
-	private String getSelectedString() {
+    private String getSelectedString() {
         Collections.sort(selectedItems, new Comparator<View>() {
             public int compare(View v1, View v2) {
                 float y1 = v1.getY(); float y2 = v2.getY();
@@ -185,24 +192,48 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-		StringBuilder b = new StringBuilder();
-		boolean already = false;
-		for (View v: selectedItems) {
-			if (!already) {
-				already = true;
-			} else {
-				b.append('\n');
-			}
-			b.append((String)v.getTag());
-		}
-		return b.toString();
-	}
+        StringBuilder b = new StringBuilder();
+        boolean already = false;
+        for (View v: selectedItems) {
+            if (!already) {
+                already = true;
+            } else {
+                b.append('\n');
+            }
+            b.append((String)v.getTag());
+        }
+        return b.toString();
+    }
 
-	public void onCopyOutputClicked(View v) {
+    public void onCopyOutputClicked(View v) {
         ((ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText(null, getSelectedString()));
-		Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show();
-		finish();
-	}
+        Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show();
+        finish();
+    }
+
+    private void addFlyOutViewAnimation(View origV) {
+        final TextView v = new TextView(this);
+        v.setText((String)origV.getTag());
+        v.setX(origV.getX());
+        v.setY(origV.getY());
+        AnimatorSet set = new AnimatorSet();
+        set.play(ObjectAnimator.ofFloat(v, View.X, -100));
+        set.setDuration(mShortAnimationDuration);
+        set.setInterpolator(new AccelerateInterpolator());
+        set.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mainIfLayout.removeView(v);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                mainIfLayout.removeView(v);
+            }
+        });
+        set.start();
+        mainIfLayout.addView(v);
+    }
 
     @Override
     protected void onPause() {
