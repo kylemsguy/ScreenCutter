@@ -25,6 +25,7 @@ import org.w3c.dom.Text;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -170,19 +171,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	}
 
 	private String getSelectedString() {
-		selectedItems.sort(new Comparator<View>() {
-			public int compare(View v1, View v2) {
-				float y1 = v1.getY(); float y2 = v2.getY();
-				if (y1 < y2) {
-					return -1;
-				} else if (y1 > y2) {
-					return 1;
-				} else {
-					float x1 = v1.getX(); float x2 = v2.getX();
-					return x1 == x2? 0: (x1 < x2? -1 : 1);
-				}
-			}
-		});
+        Collections.sort(selectedItems, new Comparator<View>() {
+            public int compare(View v1, View v2) {
+                float y1 = v1.getY(); float y2 = v2.getY();
+                if (y1 < y2) {
+                    return -1;
+                } else if (y1 > y2) {
+                    return 1;
+                } else {
+                    float x1 = v1.getX(); float x2 = v2.getX();
+                    return x1 == x2? 0: (x1 < x2? -1 : 1);
+                }
+            }
+        });
+
 		StringBuilder b = new StringBuilder();
 		boolean already = false;
 		for (View v: selectedItems) {
@@ -198,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 	public void onCopyOutputClicked(View v) {
         ((ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText(null, getSelectedString()));
-		Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT);
+		Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show();
 		finish();
 	}
 
