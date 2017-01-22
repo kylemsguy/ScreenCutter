@@ -11,7 +11,7 @@ public class NotificationMaker {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         return new NotificationCompat.Builder(context).
-                setSmallIcon(R.mipmap.ic_launcher).
+                setSmallIcon(R.mipmap.ic_notification).
                 setContentTitle("Tap to select text").
                 setContentIntent(PendingIntent.getActivity(context, 2016, intent, 0)).
                 setCategory(NotificationCompat.CATEGORY_SERVICE).

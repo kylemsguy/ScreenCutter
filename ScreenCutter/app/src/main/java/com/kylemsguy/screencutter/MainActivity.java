@@ -217,8 +217,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         v.setX(origV.getX());
         v.setY(origV.getY());
         AnimatorSet set = new AnimatorSet();
-        set.play(ObjectAnimator.ofFloat(v, View.X, -100));
-        set.setDuration(mShortAnimationDuration);
+        set.play(ObjectAnimator.ofFloat(v, View.X, -mainIfLayout.getWidth()));
+        set.setDuration(mShortAnimationDuration*2);
         set.setInterpolator(new AccelerateInterpolator());
         set.addListener(new AnimatorListenerAdapter() {
             @Override
@@ -238,11 +238,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onPause() {
         super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        finish();
+//        finish();
     }
 }
