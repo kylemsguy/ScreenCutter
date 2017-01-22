@@ -197,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	}
 
 	public void onCopyOutputClicked(View v) {
-		 ((ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setClipData(ClipData.newPlainText(null, getSelectedString()));
+        ((ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText(null, getSelectedString()));
 		Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT);
 		finish();
 	}
