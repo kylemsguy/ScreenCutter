@@ -13,20 +13,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.kylemsguy.screencutter.backend.AzureOcr;
+import com.kylemsguy.screencutter.backend.Line;
 import com.kylemsguy.screencutter.backend.OcrDecoder;
-import com.microsoft.projectoxford.vision.contract.Line;
-import com.microsoft.projectoxford.vision.contract.OCR;
-import com.microsoft.projectoxford.vision.contract.Region;
-import com.microsoft.projectoxford.vision.contract.Word;
-
-import org.w3c.dom.Text;
+import com.kylemsguy.screencutter.backend.TesseractOcr;
+import com.kylemsguy.screencutter.backend.OCR;
+import com.kylemsguy.screencutter.backend.Region;
+import com.kylemsguy.screencutter.backend.Word;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -52,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int mShortAnimationDuration;
 
     // TODO abstract this to use tesseract
-    private OcrDecoder azureDecoder;
+    private OcrDecoder ocrDecoder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,8 +71,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         imgBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
 
         // Got screenshot. Send to Azure.
-        azureDecoder = new AzureOcr();
-        azureDecoder.decodeImageToTextAsync(imgBitmap, new OcrDecoder.OcrCallback() {
+        ocrDecoder = new TesseractOcr();
+        ocrDecoder.decodeImageToTextAsync(imgBitmap, new OcrDecoder.OcrCallback() {
             @Override
             public void onResult(Object data) {
                 onOcrReturn(data);
@@ -98,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             System.out.println(data);
             return;
         } else {
-            ocrData = (OCR) data;
+//            ocrData = (OCR) data;
         }
 
         populateOcrData();
